@@ -1,11 +1,10 @@
 (ns docraider.indexer
-  (:require [clojure.java.io :as io]
-            [clojure.algo.generic.functor :as f]))
+  (:require [clojure.java.io :as io]))
 
 (defn is-file? [^java.io.File f] (.isFile f))
 
 (defn find-files
-  "Return a lazy-seq of all the files in the given directory"
+  "Returns a lazy-seq of all the files in the given directory"
   [dir] (filter is-file? (file-seq (io/as-file dir))))
 
 (defn split-extension
@@ -21,11 +20,21 @@
         [name extension] (if (nil? split) [filename nil] (rest split))]
     [(.getCanonicalPath (io/file directory name)) extension]))
 
+(defn to-document-record [[name extension-data]]
+  (let [extensions (set (map last extension-data))]
+    {:content (if (extensions "txt") (str name ".txt") nil)
+     :metadata (if (extensions "meta") (str name ".meta") nil)
+     :files (map #(str name (if (nil? %) "" (str "." %))) (disj extensions "txt" "meta"))}))
 
 (defn documents-from [files]
   (let [split-files (map split-extension files)
         raw-docs (group-by first split-files)]
-    (f/fmap #(map last %) raw-docs)))
+    (map to-document-record raw-docs)))
+
+(defn relative-path [file-path base-path]
+  (let [file-uri (.toURI (io/as-file file-path))
+        base-uri (.toURI (io/as-file base-path))]
+    (-> (.relativize base-uri file-uri) .getPath)))
 
 (defn index [target-dir index-dir]
   (let [docs (documents-from (scan-files target-dir))]

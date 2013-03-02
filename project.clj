@@ -8,8 +8,7 @@
                  [cheshire "5.0.2"]
                  [org.apache.lucene/lucene-core "4.1.0"]
                  [org.apache.lucene/lucene-queryparser "4.1.0"]
-                 [org.apache.lucene/lucene-analyzers-common "4.1.0"]
-                 [org.clojure/algo.generic "0.1.1"]]
+                 [org.apache.lucene/lucene-analyzers-common "4.1.0"]]
   :plugins [[lein-ring "0.8.2"]]
   :ring {:handler docraider.handler/app}
   :profiles
