@@ -2,6 +2,8 @@
   :description "A catalogue for your documents"
   :url "http://github.com/netmelody/docraider"
   :dependencies [[org.clojure/clojure "1.4.0"]
+                 [ring/ring-core "1.1.8"]
+                 [ring/ring-jetty-adapter "1.1.8"]
                  [compojure "1.1.5"]
                  [cheshire "5.0.2"]
                  [org.apache.lucene/lucene-core "4.1.0"]
