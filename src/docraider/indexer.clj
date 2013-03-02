@@ -22,7 +22,8 @@
 
 (defn to-document-record [[name extension-data]]
   (let [extensions (set (map last extension-data))]
-    {:content (if (extensions "txt") (str name ".txt") nil)
+    {:path name
+     :content (if (extensions "txt") (str name ".txt") nil)
      :metadata (if (extensions "meta") (str name ".meta") nil)
      :files (map #(str name (if (nil? %) "" (str "." %))) (disj extensions "txt" "meta"))}))
 
@@ -36,6 +37,22 @@
         base-uri (.toURI (io/as-file base-path))]
     (-> (.relativize base-uri file-uri) .getPath)))
 
-(defn index [target-dir index-dir]
-  (let [docs (documents-from (scan-files target-dir))]
+(defn create-index-writer [index-dir]
+  (let [dir (org.apache.lucene.store.FSDirectory/open (io/as-file index-dir))
+        version org.apache.lucene.util.Version/LUCENE_41
+        analyser (org.apache.lucene.analysis.standard.StandardAnalyzer. version)
+        config (org.apache.lucene.index.IndexWriterConfig. version analyser)]
+    (.setOpenMode config org.apache.lucene.index.IndexWriterConfig$OpenMode/CREATE)
+    (org.apache.lucene.index.IndexWriter. dir config)))
+
+(defn index-document [index-writer document-record]
+  (let [document (org.apache.lucene.document.Document.)]
+    (.add document (org.apache.lucene.document.StringField. "path" (:path document-record) org.apache.lucene.document.Field$Store/YES))
+    (.add document (org.apache.lucene.document.TextField. "contents" (java.io.BufferedReader. (java.io.InputStreamReader. (:content document-record) "UTF-8"))))
+    (.addDocument index-writer document)))
+
+(defn index-files [target-dir index-dir]
+  (let [index-writer (create-index-writer index-dir)
+        docs (documents-from (scan-files target-dir))]
+    (.close index-writer)
     docs))
