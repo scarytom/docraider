@@ -56,8 +56,7 @@
         full-index-dir (.getCanonicalPath (io/as-file index-dir))
         files (filter #(not (-> % .getCanonicalPath (.startsWith full-index-dir))) (find-files full-target-dir))
         docs (map #(assoc % :path (relative-path (:path %) full-target-dir)
-                            :files (map (fn [x] (relative-path x full-target-dir)) (:files %))) (documents-from files))
-        index-writer (create-index-writer full-index-dir)]
-    (doseq [doc docs] (index-document index-writer doc))
-    (.close index-writer)
+                            :files (map (fn [x] (relative-path x full-target-dir)) (:files %))) (documents-from files))]
+    (with-open [index-writer (create-index-writer full-index-dir)]
+      (doseq [doc docs] (index-document index-writer doc)))
     docs))
