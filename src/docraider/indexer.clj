@@ -48,11 +48,16 @@
 (defn index-document [index-writer document-record]
   (let [document (org.apache.lucene.document.Document.)]
     (.add document (org.apache.lucene.document.StringField. "path" (:path document-record) org.apache.lucene.document.Field$Store/YES))
-    (.add document (org.apache.lucene.document.TextField. "contents" (java.io.BufferedReader. (java.io.InputStreamReader. (:content document-record) "UTF-8"))))
+    (.add document (org.apache.lucene.document.TextField. "contents" (io/reader (:content document-record))))
     (.addDocument index-writer document)))
 
 (defn index-files [target-dir index-dir]
-  (let [index-writer (create-index-writer index-dir)
-        docs (documents-from (scan-files target-dir))]
+  (let [full-target-dir (.getCanonicalPath (io/as-file target-dir))
+        full-index-dir (.getCanonicalPath (io/as-file index-dir))
+        files (filter #(not (-> % .getCanonicalPath (.startsWith full-index-dir))) (find-files full-target-dir))
+        docs (map #(assoc % :path (relative-path (:path %) full-target-dir)
+                            :files (map (fn [x] (relative-path x full-target-dir)) (:files %))) (documents-from files))
+        index-writer (create-index-writer full-index-dir)]
+    (doseq [doc docs] (index-document index-writer doc))
     (.close index-writer)
     docs))
