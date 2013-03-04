@@ -1,0 +1,28 @@
+body {
+    background: none repeat scroll 0 0 #333333;
+    font-family: verdana,sans-serif;
+    line-height: 24px;
+    margin: 0;
+}
+
+.template {
+    display: none !important;
+}
+
+.header {
+    margin: 0 auto;
+    width: 940px;
+}
+
+.title {
+    margin: 5px;
+    padding: 10px;
+    font-weight: bold;
+    font-size: 30px;
+    color: #777777;
+}
+
+.content {
+    float: left;
+    width: 100%;
+}
