@@ -60,6 +60,11 @@
                                         (-> (io/file base "bar/whizz") .toString)
                                         (-> (io/file base "foo") .toString)])))))
     
+    (testing "relative-path"
+      (is (= (relative-path (io/file base "foo/bar/../baz") base) "foo/baz"))
+      (is (= (relative-path (io/file base "bar") base) "bar/")))
+    
+    
     ))
 
 
