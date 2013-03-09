@@ -1,5 +1,6 @@
 (ns docraider.indexer
-  (:require [clojure.java.io :as io]))
+  (:require [clojure.java.io :as io]
+            [docraider.lucene :as lucene]))
 
 (defn is-file? [^java.io.File f] (.isFile f))
 
@@ -37,26 +38,12 @@
         base-uri (.toURI (io/as-file base-path))]
     (-> (.relativize base-uri file-uri) .getPath)))
 
-(defn create-index-writer [index-dir]
-  (let [dir (org.apache.lucene.store.FSDirectory/open (io/as-file index-dir))
-        version org.apache.lucene.util.Version/LUCENE_41
-        analyser (org.apache.lucene.analysis.standard.StandardAnalyzer. version)
-        config (org.apache.lucene.index.IndexWriterConfig. version analyser)]
-    (.setOpenMode config org.apache.lucene.index.IndexWriterConfig$OpenMode/CREATE)
-    (org.apache.lucene.index.IndexWriter. dir config)))
-
-(defn index-document [index-writer document-record]
-  (let [document (org.apache.lucene.document.Document.)]
-    (.add document (org.apache.lucene.document.StringField. "path" (:path document-record) org.apache.lucene.document.Field$Store/YES))
-    (.add document (org.apache.lucene.document.TextField. "contents" (io/reader (:content document-record))))
-    (.addDocument index-writer document)))
-
 (defn index-files [target-dir index-dir]
   (let [full-target-dir (.getCanonicalPath (io/as-file target-dir))
         full-index-dir (.getCanonicalPath (io/as-file index-dir))
         files (filter #(not (-> % .getCanonicalPath (.startsWith full-index-dir))) (find-files full-target-dir))
         docs (map #(assoc % :path (relative-path (:path %) full-target-dir)
                             :files (map (fn [x] (relative-path x full-target-dir)) (:files %))) (documents-from files))]
-    (with-open [index-writer (create-index-writer full-index-dir)]
-      (doseq [doc docs] (index-document index-writer doc)))
+    (with-open [index-writer (lucene/create-index-writer full-index-dir)]
+      (doseq [doc docs] (lucene/index-document index-writer doc)))
     docs))
