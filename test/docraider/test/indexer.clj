@@ -1,0 +1,49 @@
+(ns docraider.test.indexer
+  (:use clojure.test
+        docraider.indexer)
+  (:require [clojure.java.io :as io]))
+
+(defn- make-temp-dir []
+  (let [directory (java.io.File/createTempFile "docraider-test" "")]
+    (.delete directory)
+    (.mkdir directory)
+    directory))
+
+(defn- make-temp-filesystem
+  ([structure]
+    (let [base (make-temp-dir)]
+      (make-temp-filesystem base structure)
+      base))
+  ([base structure]
+    (doall (map (fn [[key value]]
+                  (if (map? value)
+                    (do (let [dir (io/file base key)]
+                          (.mkdir dir)
+                          (make-temp-filesystem dir value)))
+                    (do (let [file (io/file base key)]
+                          (.createNewFile file)
+                          (with-open [wrtr (io/writer file)]
+                            (.write wrtr value))))))
+                structure))))
+
+(deftest test-indexer
+  (let [base (make-temp-filesystem {"foo.pdf" ""
+                                    "foo.txt" "foo-content"
+                                    "bar" {"whizz.pdf" "", "whizz.txt" "bang",
+                                           "whee.pdf" "", "whee.txt" "whap"}})]
+
+    (testing "find-files"
+      (let [result (find-files base)]
+        (is (= result (seq [(io/file base "bar/whee.pdf")
+                            (io/file base "bar/whee.txt")
+                            (io/file base "bar/whizz.pdf")
+                            (io/file base "bar/whizz.txt")
+                            (io/file base "foo.pdf")
+                            (io/file base "foo.txt")])))))
+    
+    (testing "split-extension"
+      (is (= (split-extension (io/file base "bar/whee.pdf")) [(-> (io/file base "bar/whee") .toString) "pdf"]))
+      (is (= (split-extension (io/file base "bar/whee.")) [(-> (io/file base "bar/whee") .toString) ""]))
+      (is (= (split-extension (io/file base "bar/whee")) [(-> (io/file base "bar/whee") .toString) nil])))))
+
+
