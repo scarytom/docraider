@@ -44,6 +44,16 @@
     (testing "split-extension"
       (is (= (split-extension (io/file base "bar/whee.pdf")) {:root (-> (io/file base "bar/whee") .toString) :extension "pdf"}))
       (is (= (split-extension (io/file base "bar/whee."))    {:root (-> (io/file base "bar/whee") .toString) :extension ""}))
-      (is (= (split-extension (io/file base "bar/whee"))     {:root (-> (io/file base "bar/whee") .toString) :extension nil})))))
+      (is (= (split-extension (io/file base "bar/whee"))     {:root (-> (io/file base "bar/whee") .toString) :extension nil})))
+    
+    (testing "to-document-record"
+      (let [result (to-document-record ["/tmp/foo"
+                                        [{:extension nil} {:extension ""} {:extension "txt"} {:extension "pdf"} {:extension "meta"}]])]
+        (is (= result {:path "/tmp/foo"
+                       :content "/tmp/foo.txt"
+                       :metadata "/tmp/foo.meta"
+                       :files (seq ["/tmp/foo" "/tmp/foo." "/tmp/foo.pdf"])}))))
+    
+    ))
 
 
