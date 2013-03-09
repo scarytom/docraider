@@ -54,6 +54,12 @@
                        :metadata "/tmp/foo.meta"
                        :files (seq ["/tmp/foo" "/tmp/foo." "/tmp/foo.pdf"])}))))
     
+    (testing "documents-from"
+      (let [result (documents-from (find-files base))]
+        (is (= (map :path result) (seq [(-> (io/file base "bar/whee") .toString)
+                                        (-> (io/file base "bar/whizz") .toString)
+                                        (-> (io/file base "foo") .toString)])))))
+    
     ))
 
 
