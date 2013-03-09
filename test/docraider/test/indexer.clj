@@ -42,8 +42,8 @@
                             (io/file base "foo.txt")])))))
     
     (testing "split-extension"
-      (is (= (split-extension (io/file base "bar/whee.pdf")) [(-> (io/file base "bar/whee") .toString) "pdf"]))
-      (is (= (split-extension (io/file base "bar/whee.")) [(-> (io/file base "bar/whee") .toString) ""]))
-      (is (= (split-extension (io/file base "bar/whee")) [(-> (io/file base "bar/whee") .toString) nil])))))
+      (is (= (split-extension (io/file base "bar/whee.pdf")) {:root (-> (io/file base "bar/whee") .toString) :extension "pdf"}))
+      (is (= (split-extension (io/file base "bar/whee."))    {:root (-> (io/file base "bar/whee") .toString) :extension ""}))
+      (is (= (split-extension (io/file base "bar/whee"))     {:root (-> (io/file base "bar/whee") .toString) :extension nil})))))
 
 

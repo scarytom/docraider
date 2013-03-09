@@ -8,29 +8,23 @@
   "Returns a lazy-seq of all the files in the given directory"
   [dir] (filter is-file? (file-seq (io/as-file dir))))
 
-(defn split-extension
-  "Returns a two-element vector containing the canonical path of the given
-   file (including its name but not its extension) and its extension.
-   
-   (split-extension (as-file \"/foo/bar.baz\"))
-   [\"/foo/bar\" \"baz\"]"
-  [^java.io.File f]
+(defn split-extension [^java.io.File f]
   (let [directory (.getParent f)
         filename (.getName f)
         split (re-matches #"(^.*)\.([^\.]*$)" filename)
         [name extension] (if (nil? split) [filename nil] (rest split))]
-    [(.getCanonicalPath (io/file directory name)) extension]))
+    {:root (.getCanonicalPath (io/file directory name)) :extension extension}))
 
-(defn to-document-record [[name extension-data]]
-  (let [extensions (set (map last extension-data))]
-    {:path name
-     :content (if (extensions "txt") (str name ".txt") nil)
-     :metadata (if (extensions "meta") (str name ".meta") nil)
-     :files (map #(str name (if (nil? %) "" (str "." %))) (disj extensions "txt" "meta"))}))
+(defn to-document-record [[root document-data]]
+  (let [extensions (set (map :extension document-data))]
+    {:path root
+     :content (if (extensions "txt") (str root ".txt") nil)
+     :metadata (if (extensions "meta") (str root ".meta") nil)
+     :files (map #(str root (if (nil? %) "" (str "." %))) (disj extensions "txt" "meta"))}))
 
 (defn documents-from [files]
   (let [split-files (map split-extension files)
-        raw-docs (group-by first split-files)]
+        raw-docs (group-by :root split-files)]
     (map to-document-record raw-docs)))
 
 (defn relative-path [file-path base-path]
