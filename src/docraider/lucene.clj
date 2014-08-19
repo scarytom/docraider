@@ -3,7 +3,7 @@
 
 (defn create-index-writer [index-dir]
   (let [dir (org.apache.lucene.store.FSDirectory/open (io/as-file index-dir))
-        version org.apache.lucene.util.Version/LUCENE_41
+        version org.apache.lucene.util.Version/LUCENE_4_9
         analyser (org.apache.lucene.analysis.standard.StandardAnalyzer. version)
         config (org.apache.lucene.index.IndexWriterConfig. version analyser)]
     (.setOpenMode config org.apache.lucene.index.IndexWriterConfig$OpenMode/CREATE)
@@ -21,7 +21,7 @@
 
 (defn search-index [index-reader term]
   (let [searcher (org.apache.lucene.search.IndexSearcher. index-reader)
-        version org.apache.lucene.util.Version/LUCENE_41
+        version org.apache.lucene.util.Version/LUCENE_4_9
         analyser (org.apache.lucene.analysis.standard.StandardAnalyzer. version)
         query-parser (org.apache.lucene.queryparser.classic.QueryParser. version "contents" analyser)
         query (.parse query-parser term)
