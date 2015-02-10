@@ -16,7 +16,7 @@ You just need Java 7
 
 ## Running
 
-```java
+```shell
   java -jar docraider.jar /path/to/my/doc/store
 ```
 
