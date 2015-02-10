@@ -16,10 +16,10 @@ You just need Java 7
 
 ## Running
 
-`java
+```java
   java -jar docraider.jar /path/to/my/doc/store
-`
+```
 
 ## License
 
-Copyright © 2013 Tom Denley
+Copyright © 2015 Tom Denley
